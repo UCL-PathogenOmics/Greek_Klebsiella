@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
-##### Script to make detect novel AMR genes.
+## Module 2 - detect novel AMR genes.
 
 ## Variables (per sample per gene analysis)
 SAMPLE="samplename"
