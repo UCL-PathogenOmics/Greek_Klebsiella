@@ -8,7 +8,7 @@ SAMPLE="samplename"
 GENE="lpoA"
 FASTA="/Assemblies/${SAMPLE}.fasta"
 GENE_REF="${GENE}/reference.fasta"
-OUTPUT="Output/${GENE}_${SAMPLE}"
+OUTPUT="Genes/${GENE}_${SAMPLE}"
 mkdir -p "$OUTPUT"
 
 # Prodigal gene prediction
