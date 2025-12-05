@@ -6,7 +6,7 @@ set -euo pipefail
 ## Variables (per sample per gene analysis)
 SAMPLE="samplename"
 GENE="lpoA"
-FASTA="/kleborate_output/${SAMPLE}.fasta"
+FASTA="/Assemblies/${SAMPLE}.fasta"
 GENE_REF="${GENE}/reference.fasta"
 OUTPUT="Output/${GENE}_${SAMPLE}"
 mkdir -p "$OUTPUT"
