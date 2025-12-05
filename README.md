@@ -1,2 +1,12 @@
 # Greek_Klebsiella
 Scripts and data for Klebsiella pneunmoniae analysis of Greek isolates in _The evolution of carbapenem-resistant Klebsiella pneumoniae in Greek intensive care units is driven by local carbapenemase acquisition, nationwide nosocomial spread and emerging resistance to novel antimicrobials. Baltas et.al. 2026_ 
+
+
+<img width="1626" height="782" alt="Image" src="Images/Workflow.png" />
+
+Pipeline:
+
+1. Genome Assembly (all samples and Clonal Groups)
+2. AMR gene detection (per gene)
+3. Core-genome phylogenomics and molecular dating (By cluster)
+4. Transmission inference (By cluster)
