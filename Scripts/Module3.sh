@@ -80,3 +80,7 @@ iqtree3 \
       -seed "$SEED" \
       -keep-ident \
       -pre "${DIR}/Tree/CG_relength"
+
+# Run BactDate in R to date tree (need CG_dates.txt file in Tree folder in "%Y/%m/%d" format)
+
+Rscript run_bactdate.R "${DIR}/SNPs/SNPs.fasta" "${DIR}/Tree/CG_relength.treefile" "${DIR}/Tree/CG_dates.txt" "${DIR}/Tree/CG_timedtree.nwk" 
