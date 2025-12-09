@@ -9,40 +9,42 @@ OUTDIR="Cluster1"
 THREADS=16
 REF="Klebsiella_reference.fasta"
 
-mkdir -p "$OUTDIR/minimap" "$OUTDIR/vcf" "$OUTDIR/gubbins" "$OUTDIR/snps" "$OUTDIR/matrix"
+mkdir -p "$OUTDIR/minimap" "$OUTDIR/vcf" "$OUTDIR/gubbins" "$OUTDIR/snps" "$OUTDIR/matrix" "$OUTDIR/consensus"
 
 # Minimap2 + BAM processing
 for R1 in "$READS"/*.fastq.gz; do
-    base=$(basename "$R1" | sed 's/_R1.*//')
+    base=$(basename "$R1" | sed 's/.fastq.*//')
 
-    minimap2 -t "$THREADS" -ax sr "$REF" "$R1" "$R2" | \
-        samtools view -b | \
-        samtools sort -o "$OUTDIR/minimap/${base}.sorted.bam"
-
+    minimap2 -t "$THREADS" -a -x map-ont "$REF" "$R1" | \
+    samtools sort -@ "$THREADS" -o "$OUTDIR/minimap/${base}.sorted.bam"
+    
     samtools index "$OUTDIR/minimap/${base}.sorted.bam"
 done
 
 # Bcftools variant calling
-for bam in "$OUTDIR/minimap"/*.bam; do
+for bam in "$OUTDIR/minimap"/*.sorted.bam; do
     sample=$(basename "$bam" .sorted.bam)
 
     bcftools mpileup -Ou -f "$REF" "$bam" | \
-        bcftools call -mv -Oz -o "$OUTDIR/vcf/${sample}.vcf.gz"
+    bcftools call -mv -Oz -o "$OUTDIR/vcf/${sample}.vcf.gz"
 
     bcftools index "$OUTDIR/vcf/${sample}.vcf.gz"
 done
 
-bcftools merge -Oz -o "$OUTDIR/merged.vcf.gz" "$OUTDIR/vcf"/*.vcf.gz
-bcftools index "$OUTDIR/merged.vcf.gz"
-bcftools consensus -f "$REF" -H 1 -M N \
-    "$OUTDIR/merged.vcf.gz" \
-    > "$OUTDIR/consensus.fasta"
-    
+for vcf in "$OUTDIR"/vcf/*.vcf.gz; do
+    sample=$(basename "$vcf" .vcf.gz)
+
+    bcftools consensus -f "$REF" -H 1 -M N "$vcf" > "$OUTDIR/consensus/${sample}.fasta"
+done
+
+# Combine consensus fastas for gubbins
+cat "$OUTDIR"/consensus/*.fasta > "$OUTDIR/Cluster1_multi.fasta"
+
 # Gubbins
-run_gubbins.py --prefix Cluster1 --threads "$THREADS" --tree-builder iqtree "$OUTDIR/consensus.fasta"
+run_gubbins.py --prefix "$OUTDIR/gubbins/Cluster1" --threads "$THREADS" --tree-builder iqtree "$OUTDIR/Cluster1_multi.fasta"
 
 # SNP-dists
-snp-dists -b Cluster1.filtered_polymorphic_sites.fasta > Cluster1_SNPdist.txt
+snp-dists -b "$OUTDIR/gubbins/Cluster1.filtered_polymorphic_sites.fasta" > "$OUTDIR/Cluster1_SNPdist.txt"
 
 # Make transmission clusters
-python Transmission_clustering.py --input Cluster1_SNPdist.txt --thresholds 21 --output Cluster1_clusters
+python Transmission_clustering.py --input "$OUTDIR/Cluster1_SNPdist.txt" --thresholds 21 --output "$OUTDIR/Cluster1_clusters" --symmetric
