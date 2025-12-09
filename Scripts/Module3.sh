@@ -21,7 +21,7 @@ for f in "${DIR}/Chromosome_assemblies/"*.fasta; do
     --prefix  "${base}" \
     --force \
     --cpus    "${THREADS}" \
-	--kingdom "$KINGDOM" \
+    --kingdom "$KINGDOM" \
     --genus   "$GENUS" \
     --species "$SPECIES" \
     "$f"
@@ -30,7 +30,7 @@ done
 # PANAROO
 mkdir -p "${DIR}/Panaroo"
 panaroo \
-    -i "${DIR}/Prokka/"*/"${base}.gff" \
+    -i "${DIR}/Prokka/"*/*.gff \
     -o "${DIR}/Panaroo" \
     -t "${THREADS}" \
     --clean-mode strict \
@@ -46,13 +46,11 @@ run_gubbins.py \
     "$ALIGN"
 
 # MASK ALIGNMENT
-
 python mask_sites.py "$ALIGN" "${DIR}/Gubbins/CG.recombination_predictions.gff" "${DIR}/Panaroo/masked.fasta"
 
 # SNP-SITES
 mkdir -p "${DIR}/SNPs"
-snpsites -c -o "${DIR}/SNPs/SNPs.fasta" "${DIR}/Panaroo/masked.fasta"
-
+snp-sites -c -o "${DIR}/SNPs/SNPs.fasta" "${DIR}/Panaroo/masked.fasta"
 
 # IQTREE3 tree build
 SEED=${SEED:-12345}
@@ -69,18 +67,15 @@ iqtree3 \
     -pre "${DIR}/Tree/CG" \
     -redo
 
-
 # IQTREE3 recalculate branch length
-
 iqtree3 \
-      -s  "${DIR}/SNPs/SNPs.fasta" \
-      -te "${DIR}/Tree/CG.treefile" \
-      -m  MFP+ASC \
-      -nt "${THREADS}" \
-      -seed "$SEED" \
-      -keep-ident \
-      -pre "${DIR}/Tree/CG_relength"
+    -s  "${DIR}/SNPs/SNPs.fasta" \
+    -te "${DIR}/Tree/CG.treefile" \
+    -m  MFP+ASC \
+    -nt "${THREADS}" \
+    -seed "$SEED" \
+    -keep-ident \
+    -pre "${DIR}/Tree/CG_relength"
 
 # Run BactDate in R to date tree (need CG_dates.txt file in Tree folder in "%Y/%m/%d" format)
-
-Rscript run_bactdate.R "${DIR}/SNPs/SNPs.fasta" "${DIR}/Tree/CG_relength.treefile" "${DIR}/Tree/CG_dates.txt" "${DIR}/Tree/CG_timedtree.nwk" 
+Rscript run_bactdate.R "${DIR}/SNPs/SNPs.fasta" "${DIR}/Tree/CG_relength.treefile" "${DIR}/Tree/CG_dates.txt" "${DIR}/Tree/CG_timedtree.nwk"
