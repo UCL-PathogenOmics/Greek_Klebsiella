@@ -8,6 +8,9 @@ Scripts and data for Klebsiella pneunmoniae analysis of Greek isolates in _The e
 Pipeline:
 
 Module 1. Genome Assembly (For each sample in Clonal Groups)
+
 Module 2. AMR gene detection (per gene)
+
 Module 3. Core-genome phylogenomics and molecular dating (By cluster)
+
 Module 4. Transmission inference (By cluster)
